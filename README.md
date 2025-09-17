@@ -36,13 +36,7 @@ Rural healthcare me connectivity/infra ki dikkat hoti hai. Sehat Saathi ASHA wor
 - QR e‑prescription + basic pharmacy check
 
 ## 🗺️ Architecture (MVP)
-
-## 🧪 Demo
-<p align="center">
-  <img src="docs/demo.gif" alt="Sehat Saathi Demo" width="720" />
-</p>
-<sub>(Add your short GIF later: drag & drop to docs/ and update the path)</sub>
-
+this is only 7 days plan
 ## 🧰 Tech Stack
 <p align="left">
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232a?logo=react&logoColor=61DAFB" /></a>
