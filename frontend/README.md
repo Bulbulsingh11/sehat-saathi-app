@@ -1,4 +1,42 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/Sehat%20Saathi-%F0%9F%8F%A1%20Rural%20Telemedicine-blueviolet?style=for-the-badge" />
+</p>
+
+<h1 align="center">🏥 Sehat Saathi — SIH 2025</h1>
+<p align="center">Offline‑first • ASHA‑friendly • Multilingual • AI Triage</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/status-in%20progress-yellow?style=flat-square" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" />
+  <img src="https://img.shields.io/github/issues/Bulbulsingh11/sehat-saathi-app?style=flat-square" />
+  <img src="https://img.shields.io/github/stars/Bulbulsingh11/sehat-saathi-app?style=flat-square" />
+</p>
+## 🚀 Quick Start
+
+
+<details>
+  <summary>🧭 How It Works (click)</summary>
+
+1. Language select  
+2. ASHA login  
+3. Patient registration  
+4. Symptom select  
+5. AI triage (R/A/G)  
+6. Doctor connect + eRx  
+</details>
+
+<p align="center">
+  <img src="https://emoji.slack-edge.com/T024J3AT2/doctor/7b7d3f9c9.png" height="40" />
+  <img src="https://emoji.slack-edge.com/T024J3AT2/ambulance/7a6a0b1d.png" height="40" />
+  <img src="https://emoji.slack-edge.com/T024J3AT2/medicine/5f0a.png" height="40" />
+  <img src="https://emoji.slack-edge.com/T024J3AT2/india/2c3d.png" height="40" />
+</p>
 # Getting Started with Create React App
+## 🎥 Demo (WIP)
+<p align="center">
+  <img src="docs/demo.gif" alt="Sehat Saathi Demo" width="720" />
+</p>
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
@@ -68,3 +106,11 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<details>
+  <summary>🤝 Contributing (click)</summary>
+
+- `git checkout -b feature/<task>`
+- `git add . && git commit -m "feat: ..."`
+- `git push origin feature/<task>`
+- Open PR to `main`
+</details>
