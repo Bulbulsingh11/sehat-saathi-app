@@ -36,3 +36,49 @@ Rural healthcare me connectivity/infra ki dikkat hoti hai. Sehat Saathi ASHA wor
 - QR e‑prescription + basic pharmacy check
 
 ## 🗺️ Architecture (MVP)
+
+## 🧪 Demo
+<p align="center">
+  <img src="docs/demo.gif" alt="Sehat Saathi Demo" width="720" />
+</p>
+<sub>(Add your short GIF later: drag & drop to docs/ and update the path)</sub>
+
+## 🧰 Tech Stack
+<p align="left">
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232a?logo=react&logoColor=61DAFB" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-43853D?logo=node.js&logoColor=white" /></a>
+  <a href="https://expressjs.com/"><img src="https://img.shields.io/badge/Express-000?logo=express&logoColor=fff" /></a>
+</p>
+
+## 🧭 How It Works
+<details>
+  <summary>Click to expand</summary>
+
+1. Language select  
+2. ASHA login  
+3. Patient registration  
+4. Symptoms select  
+5. AI triage (R/A/G)  
+6. Doctor connect + eRx  
+</details>
+
+## 📌 Roadmap (MVP)
+- Language screen, ASHA login, Patient registration
+- Symptom checker, Triage result
+- Offline save + sync
+- Basic doctor connect (stub)
+
+## 🤝 Contributing
+<details>
+  <summary>Click to expand</summary>
+
+- Create branch: `git checkout -b feature/<task>`
+- Commit: `git commit -m "feat: <what>"` (small focused commits)
+- Push: `git push origin feature/<task>`
+- PR to `main` with screenshots/GIFs
+</details>
+
+## 👥 Team BugBusters
+team leader -Yash raj jha
+## 🛡️ License
+MIT
