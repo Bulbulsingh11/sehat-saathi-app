@@ -389,10 +389,287 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
   );
 };
 
+// Health Checkup Screen
+const HealthCheckup = ({ onBack, onSubmit }) => {
+  const [step, setStep] = useState(1);
+  const [patientInfo, setPatientInfo] = useState({
+    name: '',
+    age: '',
+    gender: ''
+  });
+  const [symptoms, setSymptoms] = useState([]);
+  const [vitals, setVitals] = useState({
+    temperature: '',
+    bloodPressure: '',
+    heartRate: ''
+  });
+
+  const symptomsList = [
+    'बुखार / Fever',
+    'खांसी / Cough', 
+    'सांस लेने में कठिनाई / Breathing Problem',
+    'छाती में दर्द / Chest Pain',
+    'सिरदर्द / Headache',
+    'जी मिचलाना / Nausea'
+  ];
+
+  const handleSubmit = () => {
+    onSubmit({ patient: patientInfo, symptoms, vitals });
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <button onClick={onBack} style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        background: 'rgba(255,255,255,0.2)',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '25px',
+        cursor: 'pointer'
+      }}>
+        ← Back
+      </button>
+
+      <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '60px' }}>
+        {step === 1 && (
+          <div style={{
+            background: 'white',
+            padding: '40px',
+            borderRadius: '20px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>👤 Patient Information</h2>
+            
+            <input
+              type="text"
+              placeholder="Patient Name / मरीज का नाम"
+              value={patientInfo.name}
+              onChange={(e) => setPatientInfo({...patientInfo, name: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '15px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <input
+              type="number"
+              placeholder="Age / उम्र"
+              value={patientInfo.age}
+              onChange={(e) => setPatientInfo({...patientInfo, age: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '15px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <select
+              value={patientInfo.gender}
+              onChange={(e) => setPatientInfo({...patientInfo, gender: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '25px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">Select Gender / लिंग चुनें</option>
+              <option value="male">Male / पुरुष</option>
+              <option value="female">Female / महिला</option>
+            </select>
+
+            <button onClick={() => setStep(2)} style={{
+              width: '100%',
+              padding: '15px',
+              background: '#3498db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '18px',
+              cursor: 'pointer'
+            }}>
+              Next: Select Symptoms →
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div style={{
+            background: 'white',
+            padding: '40px',
+            borderRadius: '20px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>🩺 Select Symptoms</h2>
+            
+            <div style={{ marginBottom: '30px' }}>
+              {symptomsList.map((symptom, index) => (
+                <label key={index} style={{
+                  display: 'block',
+                  padding: '15px',
+                  marginBottom: '10px',
+                  border: '2px solid #ecf0f1',
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={symptoms.includes(symptom)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSymptoms([...symptoms, symptom]);
+                      } else {
+                        setSymptoms(symptoms.filter(s => s !== symptom));
+                      }
+                    }}
+                    style={{ marginRight: '10px' }}
+                  />
+                  {symptom}
+                </label>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setStep(1)} style={{
+                flex: 1,
+                padding: '15px',
+                background: '#95a5a6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer'
+              }}>
+                ← Previous
+              </button>
+              <button onClick={() => setStep(3)} style={{
+                flex: 2,
+                padding: '15px',
+                background: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer'
+              }}>
+                Next: Record Vitals →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div style={{
+            background: 'white',
+            padding: '40px',
+            borderRadius: '20px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>📊 Record Vitals</h2>
+            
+            <input
+              type="number"
+              placeholder="Temperature (°F) / तापमान"
+              value={vitals.temperature}
+              onChange={(e) => setVitals({...vitals, temperature: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '15px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <input
+              type="text"
+              placeholder="Blood Pressure / रक्तचाप (120/80)"
+              value={vitals.bloodPressure}
+              onChange={(e) => setVitals({...vitals, bloodPressure: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '15px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <input
+              type="number"
+              placeholder="Heart Rate / हृदय गति"
+              value={vitals.heartRate}
+              onChange={(e) => setVitals({...vitals, heartRate: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '15px',
+                marginBottom: '25px',
+                border: '2px solid #ecf0f1',
+                borderRadius: '10px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setStep(2)} style={{
+                flex: 1,
+                padding: '15px',
+                background: '#95a5a6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer'
+              }}>
+                ← Previous
+              </button>
+              <button onClick={handleSubmit} style={{
+                flex: 2,
+                padding: '15px',
+                background: '#27ae60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '18px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}>
+                Complete Checkup ✓
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ASHA Dashboard
-const ASHADashboard = ({ user, onLogout, lang }) => {
+const ASHADashboard = ({ user, onLogout, lang, setCurrentScreen }) => {
   const t = languages[lang] || languages.en;
-  
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -442,16 +719,16 @@ const ASHADashboard = ({ user, onLogout, lang }) => {
         margin: '0 auto'
       }}>
         {[
-          { icon: '👤', title: t.patientReg, subtitle: t.regSubtitle },
-          { icon: '🩺', title: t.healthCheckup, subtitle: t.checkupSubtitle },
-          { icon: '📋', title: t.patientRecords, subtitle: t.recordsSubtitle },
-          { icon: '🏥', title: t.doctorConnect, subtitle: t.connectSubtitle },
-          { icon: '💊', title: t.medicineTracker, subtitle: t.trackerSubtitle },
-          { icon: '📊', title: t.healthReports, subtitle: t.reportsSubtitle }
+          { icon: '👤', title: t.patientReg, subtitle: t.regSubtitle, onClick: () => alert(`${t.patientReg} - Coming Soon!`) },
+          { icon: '🩺', title: t.healthCheckup, subtitle: t.checkupSubtitle, onClick: () => setCurrentScreen('healthCheckup') },
+          { icon: '📋', title: t.patientRecords, subtitle: t.recordsSubtitle, onClick: () => alert(`${t.patientRecords} - Coming Soon!`) },
+          { icon: '🏥', title: t.doctorConnect, subtitle: t.connectSubtitle, onClick: () => alert(`${t.doctorConnect} - Coming Soon!`) },
+          { icon: '💊', title: t.medicineTracker, subtitle: t.trackerSubtitle, onClick: () => alert(`${t.medicineTracker} - Coming Soon!`) },
+          { icon: '📊', title: t.healthReports, subtitle: t.reportsSubtitle, onClick: () => alert(`${t.healthReports} - Coming Soon!`) }
         ].map((card, index) => (
           <div
             key={index}
-            onClick={() => alert(`${card.title} - Coming Soon!`)}
+            onClick={card.onClick}
             style={{
               background: 'white',
               padding: '35px 30px',
@@ -489,6 +766,8 @@ function App() {
   const [language, setLanguage] = useState(null);
   const [role, setRole] = useState(null);
   const [user, setUser] = useState(null);
+  const [currentScreen, setCurrentScreen] = useState('dashboard');
+  const [patientData, setPatientData] = useState(null);
 
   // Language Selection
   if (!language) {
@@ -519,6 +798,21 @@ function App() {
     />;
   }
 
+  // Health Checkup Screen
+  if (currentScreen === 'healthCheckup') {
+    return (
+      <HealthCheckup 
+        onBack={() => setCurrentScreen('dashboard')}
+        onSubmit={(data) => {
+          console.log('Health Checkup Data:', data);
+          setPatientData(data);
+          alert('Health checkup completed successfully!');
+          setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
+
   // ASHA Dashboard
   if (user && role === 'asha') {
     return <ASHADashboard 
@@ -527,7 +821,9 @@ function App() {
         setUser(null);
         setRole(null);
         setLanguage(null);
+        setCurrentScreen('dashboard');
       }}
+      setCurrentScreen={setCurrentScreen}
       lang={language}
     />;
   }
