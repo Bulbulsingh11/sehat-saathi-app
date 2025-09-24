@@ -5,67 +5,80 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
   const {
     patient,
     priority,
-    priorityColor,
+    urgencyLevel,
     riskScore,
-    riskFactors,
-    recommendations,
+    confidence,
+    clinicalRecommendations,
     estimatedWaitTime,
     queuePosition,
-    triageId
+    triageId,
+    medicalReport,
+    nlpAnalysis,
+    mlAnalysis,
+    auditTrail
   } = triageData;
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #ebfaff 0%, #cce4ff 100%)',
       padding: '20px',
-      fontFamily: 'Arial, sans-serif'
+      fontFamily: 'Arial, Helvetica, sans-serif'
     }}>
       {/* Back Button */}
       <button onClick={onBack} style={{
         position: 'absolute',
         top: '20px',
         left: '20px',
-        background: 'rgba(255,255,255,0.2)',
-        color: 'white',
+        background: 'rgba(0,86,179,0.18)',
+        color: '#0056b3',
         border: 'none',
         padding: '10px 20px',
         borderRadius: '25px',
+        fontWeight: 600,
         cursor: 'pointer'
       }}>
         ← Back to Dashboard
       </button>
 
-      <div style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '60px' }}>
-        {/* Priority Header */}
+      <div style={{ maxWidth: '900px', margin: '0 auto', paddingTop: '60px' }}>
+        {/* Report Header */}
         <div style={{
-          background: priorityColor,
-          padding: '30px',
+          background: '#0056b3',
+          padding: '32px',
           borderRadius: '20px 20px 0 0',
           textAlign: 'center',
           color: 'white'
         }}>
-          <h1 style={{ margin: '0 0 10px 0', fontSize: '36px' }}>
-            🏥 Triage Result
+          <h1 style={{ margin: '0 0 12px 0', fontSize: '36px', letterSpacing: '1px' }}>
+            🏥 Medical Triage Report
           </h1>
-          <div style={{ fontSize: '48px', margin: '10px 0' }}>
-            {priority === 'RED' ? '🚨' : priority === 'YELLOW' ? '⚠️' : '✅'}
-          </div>
-          <h2 style={{ margin: '10px 0', fontSize: '32px' }}>
-            PRIORITY: {priority}
+          <h2 style={{ fontSize: '30px' }}>
+            {medicalReport.header.reportTitle}
           </h2>
-          <p style={{ margin: '0', fontSize: '18px', opacity: 0.9 }}>
-            Triage ID: {triageId}
-          </p>
+          <div style={{ fontSize: '16px', opacity: 0.85 }}>
+            {medicalReport.header.facilityName} &nbsp;|&nbsp;
+            Version: {medicalReport.header.systemVersion}
+          </div>
+          <div style={{ fontSize: '18px', marginTop: '10px', color: '#ffd700' }}>
+            PRIORITY: {priority} &mdash; <span style={{ fontWeight: 700 }}>{urgencyLevel}</span>
+            &nbsp;
+          </div>
+          <div style={{ fontSize: '18px', marginTop: '4px' }}>
+            Triage ID: {triageId} &nbsp;|&nbsp; Generated: {new Date(medicalReport.header.generatedAt).toLocaleString()}
+          </div>
+          <div style={{ fontSize: '15px', marginTop: '5px', opacity: 0.8 }}>
+            {medicalReport.header.compliance}
+          </div>
         </div>
 
-        {/* Patient Info */}
+        {/* Patient Information */}
         <div style={{
-          background: 'white',
+          background: '#fff',
           padding: '30px',
           borderBottom: '1px solid #ecf0f1'
         }}>
-          <h3 style={{ color: '#2c3e50', marginBottom: '15px' }}>👤 Patient Information</h3>
+          <h3 style={{ color: '#205080', marginBottom: '15px' }}>👤 Patient Information</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
             <div>
               <strong>Name:</strong><br />
@@ -82,22 +95,46 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
           </div>
         </div>
 
-        {/* Risk Assessment */}
+        {/* Clinical & AI Findings */}
         <div style={{
-          background: 'white',
+          background: '#fff',
           padding: '30px',
           borderBottom: '1px solid #ecf0f1'
         }}>
-          <h3 style={{ color: '#2c3e50', marginBottom: '15px' }}>📊 Risk Assessment</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <h3 style={{ color: '#205080', marginBottom: '15px' }}>🩺 Clinical Assessment & AI Analysis</h3>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Chief Complaint:</strong> {medicalReport.clinicalFindings.chiefComplaint}
+          </div>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Priority Assignment:</strong> <span style={{ fontWeight: 700 }}>{medicalReport.clinicalFindings.priorityAssignment}</span>
+          </div>
+          <div>
+            <strong>Risk Stratification:</strong> <span style={{ color: '#e74c3c', fontWeight: 700 }}>
+              {medicalReport.clinicalFindings.riskStratification}
+            </span>
+          </div>
+        </div>
+
+        {/* Advanced Risk Assessment */}
+        <div style={{
+          background: '#fff',
+          padding: '30px',
+          borderBottom: '1px solid #ecf0f1'
+        }}>
+          <h3 style={{ color: '#205080', marginBottom: '15px' }}>📊 Advanced Risk Assessment & Queue</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
             <div>
-              <strong>Risk Score:</strong><br />
-              <span style={{ 
-                fontSize: '24px', 
-                fontWeight: 'bold', 
-                color: priorityColor 
+              <strong>AI Risk Score:</strong><br />
+              <span style={{
+                fontSize: '26px',
+                fontWeight: 'bold',
+                color: '#0056b3'
               }}>
                 {riskScore}/100
+              </span>
+              <br />
+              <span style={{ fontSize: '15px', color: '#188818', fontWeight: 600 }}>
+                Confidence: {confidence}%
               </span>
             </div>
             <div>
@@ -106,51 +143,48 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
                 #{queuePosition}
               </span>
             </div>
-          </div>
-          
-          <div style={{ marginTop: '20px' }}>
-            <strong>Estimated Wait Time:</strong><br />
-            <span style={{ fontSize: '20px', color: priorityColor }}>
-              {estimatedWaitTime}
-            </span>
+            <div>
+              <strong>Estimated Wait Time:</strong><br />
+              <span style={{ fontSize: '20px', color: '#e67e22' }}>
+                {estimatedWaitTime}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Risk Factors */}
-        {riskFactors.length > 0 && (
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderBottom: '1px solid #ecf0f1'
-          }}>
-            <h3 style={{ color: '#2c3e50', marginBottom: '15px' }}>⚠️ Risk Factors Detected</h3>
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              {riskFactors.map((factor, index) => (
-                <li key={index} style={{ 
-                  marginBottom: '10px', 
-                  fontSize: '16px',
-                  color: '#e74c3c' 
-                }}>
-                  {factor}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Recommendations */}
+        {/* NLP & ML Model Analysis */}
         <div style={{
-          background: 'white',
+          background: '#f5f8fa',
           padding: '30px',
           borderBottom: '1px solid #ecf0f1'
         }}>
-          <h3 style={{ color: '#2c3e50', marginBottom: '15px' }}>💡 Recommendations</h3>
-          <ul style={{ margin: 0, paddingLeft: '20px' }}>
-            {recommendations.map((rec, index) => (
-              <li key={index} style={{ 
-                marginBottom: '10px', 
+          <h3 style={{ color: '#205080', marginBottom: '15px' }}>🤖 AI/NLP Analysis</h3>
+          <strong>Natural Language Processing:</strong>
+          <ul style={{ margin: '8px 0 16px 26px', padding: 0 }}>
+            <li>Symptoms processed: <b>{medicalReport.aiAnalysis.naturalLanguageProcessing}</b></li>
+            <li>Confidence: {nlpAnalysis ? (nlpAnalysis.severity_confidence * 100).toFixed(1) : 'N/A'}%</li>
+          </ul>
+          <strong>Machine Learning Model:</strong>
+          <ul style={{ margin: '8px 0 0 26px', padding: 0 }}>
+            <li>{medicalReport.aiAnalysis.machineLearningPrediction}</li>
+            <li>Feature Importance: <span style={{ fontSize: '15px', fontWeight: 400 }}>{JSON.stringify(mlAnalysis ? mlAnalysis.feature_importance : {})}</span></li>
+            <li>Confidence Interval: <span style={{ color: '#5b7bca' }}>{medicalReport.aiAnalysis.confidenceInterval ? medicalReport.aiAnalysis.confidenceInterval.join(' - ') : 'N/A'}</span></li>
+          </ul>
+        </div>
+
+        {/* Clinical Recommendations */}
+        <div style={{
+          background: '#fff',
+          padding: '30px',
+          borderBottom: '1px solid #ecf0f1'
+        }}>
+          <h3 style={{ color: '#205080', marginBottom: '15px' }}>💊 Clinical Recommendations</h3>
+          <ul style={{ margin: 0, paddingLeft: '26px' }}>
+            {clinicalRecommendations.map((rec, index) => (
+              <li key={index} style={{
+                marginBottom: '10px',
                 fontSize: '16px',
-                color: '#2c3e50' 
+                color: '#188818'
               }}>
                 {rec}
               </li>
@@ -158,11 +192,31 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
           </ul>
         </div>
 
+        {/* Compliance & Audit Trail */}
+        <div style={{
+          background: '#e9ecef',
+          padding: '18px',
+          borderRadius: '0 0 20px 20px',
+          color: '#496490',
+          marginBottom: '15px'
+        }}>
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div>
+              <b>Assessed By:</b> {auditTrail.assessedBy}
+            </div>
+            <div>
+              <b>Standards:</b> {auditTrail.medicalStandards}
+            </div>
+            <div>
+              <b>Report Confidence:</b> {auditTrail.confidenceMetrics ? auditTrail.confidenceMetrics.join(' - ') : 'N/A'}
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div style={{
-          background: 'white',
+          background: '#fff',
           padding: '30px',
-          borderRadius: '0 0 20px 20px',
           display: 'flex',
           gap: '15px',
           flexWrap: 'wrap'
@@ -175,7 +229,7 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
             style={{
               flex: 1,
               padding: '15px',
-              background: priorityColor,
+              background: '#0056b3',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
@@ -186,26 +240,30 @@ const TriageResult = ({ triageData, onBack, onAddToQueue }) => {
           >
             Add to {priority} Queue
           </button>
-          
+
           <button
             onClick={() => {
               const printData = `
-TRIAGE REPORT
-=============
-Patient: ${patient.name}
-Priority: ${priority}
-Risk Score: ${riskScore}
-Queue Position: #${queuePosition}
-Wait Time: ${estimatedWaitTime}
+AI TRIAGE REPORT
+----------------
+Patient: ${patient.name}, Age: ${patient.age}, Gender: ${patient.gender}
+Priority: ${priority} (${urgencyLevel}), Score: ${riskScore}/100
+Confidence: ${confidence}%
+Queue #: ${queuePosition}, Wait: ${estimatedWaitTime}
 
-Risk Factors:
-${riskFactors.map(f => `• ${f}`).join('\n')}
+Chief Complaint: ${medicalReport.clinicalFindings.chiefComplaint}
 
-Recommendations:
-${recommendations.map(r => `• ${r}`).join('\n')}
+Risk Factors: ${medicalReport.clinicalFindings.riskStratification}
+Clinical Recommendations: 
+${clinicalRecommendations.map(r => `• ${r}`).join('\n')}
+NLP Analysis: ${medicalReport.aiAnalysis.naturalLanguageProcessing}
+ML Prediction: ${medicalReport.aiAnalysis.machineLearningPrediction}
+-------------------------------------
+Assessed by: ${auditTrail.assessedBy} | Standards: ${auditTrail.medicalStandards}
+Confidence: ${auditTrail.confidenceMetrics ? auditTrail.confidenceMetrics.join(' - ') : 'N/A'}
               `;
               navigator.clipboard.writeText(printData);
-              alert('Triage report copied to clipboard!');
+              alert('Professional medical report copied to clipboard!');
             }}
             style={{
               flex: 1,
@@ -219,7 +277,7 @@ ${recommendations.map(r => `• ${r}`).join('\n')}
               cursor: 'pointer'
             }}
           >
-            📋 Copy Report
+            📋 Copy Professional Report
           </button>
 
           <button

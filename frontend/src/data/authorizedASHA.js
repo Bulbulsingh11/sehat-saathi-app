@@ -5,7 +5,7 @@ export const AUTHORIZED_ASHA_WORKERS = [
   // Punjab Region
   {
     ashaId: 'PB001',
-    password: 'Amritsar@2024',
+    password: 'Amritsar@2024', // Note: In production, store hashed passwords securely
     name: 'Priya Sharma',
     district: 'Amritsar',
     block: 'Majitha',
@@ -105,10 +105,10 @@ export const authenticateASHA = (ashaId, password) => {
   );
   
   if (worker) {
-    // Update last login time
+    // Update last login time securely
     worker.lastLogin = new Date().toISOString();
     
-    // Store in localStorage for session management
+    // Store in localStorage for session management with expiration check
     localStorage.setItem('currentASHA', JSON.stringify({
       ...worker,
       loginTime: new Date().toISOString(),
@@ -129,7 +129,7 @@ export const authenticateASHA = (ashaId, password) => {
   };
 };
 
-// Session validation
+// Session validation with 8-hour expiration limit
 export const validateSession = () => {
   const session = localStorage.getItem('currentASHA');
   if (session) {
@@ -149,26 +149,26 @@ export const validateSession = () => {
   return null;
 };
 
-// Logout function
+// Logout function securely removes user session
 export const logoutASHA = () => {
   localStorage.removeItem('currentASHA');
   return true;
 };
 
-// Get current ASHA details
+// Get current logged in ASHA worker details
 export const getCurrentASHA = () => {
   const session = localStorage.getItem('currentASHA');
   return session ? JSON.parse(session) : null;
 };
 
-// Password reset request (for future implementation)
+// Password reset request (planned for future secured implementation)
 export const requestPasswordReset = (ashaId, phone) => {
   const worker = AUTHORIZED_ASHA_WORKERS.find(
     asha => asha.ashaId === ashaId && asha.phone === phone
   );
   
   if (worker) {
-    // In real implementation, send SMS with reset link
+    // In production, integrate SMS API for secure password reset
     console.log(`Password reset requested for ${worker.name} - ${worker.phone}`);
     return {
       success: true,

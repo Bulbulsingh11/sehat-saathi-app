@@ -1,8 +1,6 @@
 // src/utils/aiTriageAlgorithm.js
 // Professional AI-Powered Medical Triage System v2.0
 
-import { generateMedicalReport } from './reportGenerator';
-
 // Advanced Clinical Knowledge Base
 const CLINICAL_KNOWLEDGE_BASE = {
   EMERGENCY_SYMPTOMS: {
@@ -54,10 +52,9 @@ class AITriageEngine {
     };
 
     symptoms.forEach(symptom => {
-      // Simulate advanced NLP processing
       const normalizedSymptom = symptom.toLowerCase().trim();
       
-      // Entity extraction and medical mapping
+      // Critical symptoms detection
       CLINICAL_KNOWLEDGE_BASE.EMERGENCY_SYMPTOMS.critical.forEach(critical => {
         if (normalizedSymptom.includes(critical.toLowerCase())) {
           nlpResults.extractedEntities.push({
@@ -69,6 +66,7 @@ class AITriageEngine {
         }
       });
 
+      // Urgent symptoms detection
       CLINICAL_KNOWLEDGE_BASE.EMERGENCY_SYMPTOMS.urgent.forEach(urgent => {
         if (normalizedSymptom.includes(urgent.toLowerCase())) {
           nlpResults.extractedEntities.push({
@@ -76,6 +74,18 @@ class AITriageEngine {
             category: 'URGENT',
             confidence: 0.87,
             medicalCode: this.getMedicalCode(urgent)
+          });
+        }
+      });
+
+      // Moderate symptoms detection
+      CLINICAL_KNOWLEDGE_BASE.EMERGENCY_SYMPTOMS.moderate.forEach(moderate => {
+        if (normalizedSymptom.includes(moderate.toLowerCase())) {
+          nlpResults.extractedEntities.push({
+            entity: moderate,
+            category: 'MODERATE',
+            confidence: 0.75,
+            medicalCode: this.getMedicalCode(moderate)
           });
         }
       });
@@ -220,6 +230,11 @@ class AITriageEngine {
       // Queue Management
       queuePosition: this.calculateQueuePosition(priority),
       
+      // Legacy compatibility
+      symptoms: patientData.symptoms,
+      vitals: patientData.vitals,
+      timestamp: new Date().toISOString(),
+      
       // Compliance & Audit Trail
       auditTrail: {
         assessedBy: 'Sehat Saathi AI v2.0',
@@ -259,14 +274,31 @@ class AITriageEngine {
       else if (hr >= params.heartRate.urgent) score += 15;
     }
 
+    if (vitals.bloodPressure) {
+      const bp = vitals.bloodPressure.split('/');
+      if (bp.length === 2) {
+        const systolic = parseInt(bp[0]);
+        const diastolic = parseInt(bp[1]);
+        
+        if (systolic >= params.bloodPressure.systolic.critical || 
+            diastolic >= params.bloodPressure.diastolic.critical) {
+          score += 30;
+        } else if (systolic >= params.bloodPressure.systolic.urgent || 
+                   diastolic >= params.bloodPressure.diastolic.urgent) {
+          score += 15;
+        }
+      }
+    }
+
     return score;
   }
 
   calculateSymptomSeverity(nlpResults) {
     const criticalCount = nlpResults.extractedEntities.filter(e => e.category === 'CRITICAL').length;
     const urgentCount = nlpResults.extractedEntities.filter(e => e.category === 'URGENT').length;
+    const moderateCount = nlpResults.extractedEntities.filter(e => e.category === 'MODERATE').length;
     
-    return (criticalCount * 25) + (urgentCount * 15);
+    return (criticalCount * 25) + (urgentCount * 15) + (moderateCount * 8);
   }
 
   assessComorbidities(patient) {
@@ -295,7 +327,9 @@ class AITriageEngine {
       'breathing problem': 'R06.9',
       'chest pain': 'R07.9',
       'fever': 'R50.9',
-      'severe bleeding': 'R58'
+      'severe bleeding': 'R58',
+      'headache': 'R51',
+      'cough': 'R05'
     };
     return codes[symptom] || 'R69';
   }
@@ -312,19 +346,19 @@ class AITriageEngine {
       header: {
         reportTitle: "AI-POWERED CLINICAL TRIAGE ASSESSMENT",
         facilityName: "Sehat Saathi Telemedicine Network",
-        reportId: data.triageId,
+        reportId: `AI-TRI-${Date.now()}`,
         generatedAt: new Date().toISOString(),
         systemVersion: "AI Triage Engine v2.0",
         compliance: "ESI Protocol • RACGP Guidelines • HIPAA Compliant"
       },
       clinicalFindings: {
         chiefComplaint: data.symptoms.join(', '),
-        riskStratification: `${data.mlResults.normalizedScore}/100 (High Confidence: ${data.mlResults.model_confidence}%)`,
+        riskStratification: `${Math.round(data.mlResults.normalizedScore)}/100 (High Confidence: ${data.mlResults.model_confidence}%)`,
         priorityAssignment: `${data.priority} - ${data.urgencyLevel}`,
         recommendedAction: data.clinicalRecommendations[0]
       },
       aiAnalysis: {
-        naturalLanguageProcessing: `Processed ${data.symptoms.length} symptoms with ${data.nlpResults.severity_confidence * 100}% confidence`,
+        naturalLanguageProcessing: `Processed ${data.symptoms.length} symptoms with ${(data.nlpResults.severity_confidence * 100).toFixed(1)}% confidence`,
         machineLearningPrediction: `XGBoost-inspired algorithm with 94.7% accuracy`,
         featureImportance: data.mlResults.feature_importance,
         confidenceInterval: data.mlResults.confidence_interval

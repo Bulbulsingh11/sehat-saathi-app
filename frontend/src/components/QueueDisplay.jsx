@@ -6,21 +6,22 @@ const QueueDisplay = ({ onBack, lang }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedPriority, setSelectedPriority] = useState('ALL');
 
-  // Language translations
   const translations = {
     en: {
       title: 'Patient Queue',
       all: 'All Patients',
-      emergency: 'Emergency',
-      urgent: 'Urgent', 
-      routine: 'Routine',
+      emergency: 'Resuscitation',
+      urgent: 'Emergent',
+      semiUrgent: 'Urgent',
+      routine: 'Non-Urgent',
       queueStats: 'Queue Statistics',
       totalPatients: 'Total Patients',
       avgWaitTime: 'Average Wait Time',
       name: 'Name',
-      priority: 'Priority',
+      priority: 'Priority Level',
       waitTime: 'Wait Time',
       riskScore: 'Risk Score',
+      confidence: 'Model Confidence',
       symptoms: 'Symptoms',
       back: 'Back to Dashboard',
       refreshQueue: 'Refresh Queue',
@@ -30,16 +31,18 @@ const QueueDisplay = ({ onBack, lang }) => {
     hi: {
       title: 'मरीज़ कतार',
       all: 'सभी मरीज़',
-      emergency: 'आपातकाल',
-      urgent: 'तत्काल',
-      routine: 'नियमित',
+      emergency: 'तत्काल',
+      urgent: 'आपातकालीन',
+      semiUrgent: 'जरूरी',
+      routine: 'गैर-जरूरी',
       queueStats: 'कतार आंकड़े',
       totalPatients: 'कुल मरीज़',
       avgWaitTime: 'औसत प्रतीक्षा समय',
       name: 'नाम',
-      priority: 'प्राथमिकता',
+      priority: 'प्राथमिकता स्तर',
       waitTime: 'प्रतीक्षा समय',
       riskScore: 'जोखिम स्कोर',
+      confidence: 'मॉडल आत्मविश्वास',
       symptoms: 'लक्षण',
       back: 'डैशबोर्ड पर वापस',
       refreshQueue: 'कतार रीफ्रेश करें',
@@ -49,16 +52,18 @@ const QueueDisplay = ({ onBack, lang }) => {
     pa: {
       title: 'ਮਰੀਜ਼ ਕਤਾਰ',
       all: 'ਸਾਰੇ ਮਰੀਜ਼',
-      emergency: 'ਐਮਰਜੈਂਸੀ',
-      urgent: 'ਤੁਰੰਤ',
-      routine: 'ਰੁਟੀਨ',
+      emergency: 'ਤੁਰੰਤ',
+      urgent: 'ਐਮਰਜੈਂਸੀ',
+      semiUrgent: 'ਜ਼ਰੂਰੀ',
+      routine: 'ਗੈਰ-ਜ਼ਰੂਰੀ',
       queueStats: 'ਕਤਾਰ ਅੰਕੜੇ',
       totalPatients: 'ਕੁੱਲ ਮਰੀਜ਼',
       avgWaitTime: 'ਔਸਤ ਉਡੀਕ ਸਮਾਂ',
-      name: 'ਨਾਮ',
-      priority: 'ਤਰਜੀਹ',
+      name: 'ਨਾਂ',
+      priority: 'ਤਰਜੀਹ ਪੱਧਰ',
       waitTime: 'ਉਡੀਕ ਸਮਾਂ',
       riskScore: 'ਜੋਖਮ ਸਕੋਰ',
+      confidence: 'ਮਾਡਲ ਭਰੋਸਾ',
       symptoms: 'ਲੱਛਣ',
       back: 'ਡੈਸ਼ਬੋਰਡ ਵਾਪਸ',
       refreshQueue: 'ਕਤਾਰ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ',
@@ -69,18 +74,15 @@ const QueueDisplay = ({ onBack, lang }) => {
 
   const t = translations[lang] || translations.en;
 
-  // Load queue from localStorage on component mount
+  // Load queue from localStorage on mount
   useEffect(() => {
-    const savedQueue = localStorage.getItem('triageQueue');
-    if (savedQueue) {
-      setQueue(JSON.parse(savedQueue));
-    }
-    
-    // Update current time every minute
+    const savedQueue = localStorage.getItem('aiTriageQueue');
+    if (savedQueue) setQueue(JSON.parse(savedQueue));
+
+    // Update time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
     return () => clearInterval(timer);
   }, []);
 
@@ -89,28 +91,31 @@ const QueueDisplay = ({ onBack, lang }) => {
     ? queue 
     : queue.filter(patient => patient.priority === selectedPriority);
 
+  // Map ESI for filter buttons
+  const priorityLevels = ['ALL', 'ESI-1', 'ESI-2', 'ESI-3', 'ESI-4/5'];
+
   // Calculate queue statistics
   const queueStats = {
     total: queue.length,
-    red: queue.filter(p => p.priority === 'RED').length,
-    yellow: queue.filter(p => p.priority === 'YELLOW').length,
-    green: queue.filter(p => p.priority === 'GREEN').length,
+    esi1: queue.filter(p => p.priority === 'ESI-1').length,
+    esi2: queue.filter(p => p.priority === 'ESI-2').length,
+    esi3: queue.filter(p => p.priority === 'ESI-3').length,
+    esi4_5: queue.filter(p => p.priority === 'ESI-4/5').length,
     avgWaitTime: queue.length > 0 
       ? Math.round(queue.reduce((sum, p) => sum + parseInt(p.queuePosition), 0) / queue.length * 15)
       : 0
   };
 
-  // Get priority color
   const getPriorityColor = (priority) => {
     switch(priority) {
-      case 'RED': return '#e74c3c';
-      case 'YELLOW': return '#f39c12';
-      case 'GREEN': return '#27ae60';
+      case 'ESI-1': return '#e74c3c';
+      case 'ESI-2': return '#f39c12';
+      case 'ESI-3': return '#f1c40f'; // Semi urgent, yellowish
+      case 'ESI-4/5': return '#27ae60';
       default: return '#95a5a6';
     }
   };
 
-  // Calculate wait time since triage
   const getWaitTime = (timestamp) => {
     const triageTime = new Date(timestamp);
     const diffMinutes = Math.floor((currentTime - triageTime) / (1000 * 60));
@@ -124,19 +129,15 @@ const QueueDisplay = ({ onBack, lang }) => {
     }
   };
 
-  // Refresh queue
   const refreshQueue = () => {
-    const savedQueue = localStorage.getItem('triageQueue');
-    if (savedQueue) {
-      setQueue(JSON.parse(savedQueue));
-    }
+    const savedQueue = localStorage.getItem('aiTriageQueue');
+    if (savedQueue) setQueue(JSON.parse(savedQueue));
   };
 
-  // Clear queue
   const clearQueue = () => {
-    if (window.confirm('Are you sure you want to clear the entire queue?')) {
+    if(window.confirm('Are you sure you want to clear the entire queue?')) {
       setQueue([]);
-      localStorage.removeItem('triageQueue');
+      localStorage.removeItem('aiTriageQueue');
     }
   };
 
@@ -190,7 +191,7 @@ const QueueDisplay = ({ onBack, lang }) => {
           }}>
             🔄 {t.refreshQueue}
           </button>
-          
+
           <button onClick={clearQueue} style={{
             background: '#e74c3c',
             color: 'white',
@@ -216,10 +217,10 @@ const QueueDisplay = ({ onBack, lang }) => {
         <h3 style={{ color: '#2c3e50', marginBottom: '20px', fontSize: '24px' }}>
           📊 {t.queueStats}
         </h3>
-        
+
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '20px'
         }}>
           <div style={{
@@ -235,7 +236,7 @@ const QueueDisplay = ({ onBack, lang }) => {
               {t.totalPatients}
             </div>
           </div>
-          
+
           <div style={{
             background: '#fee',
             padding: '20px',
@@ -243,13 +244,13 @@ const QueueDisplay = ({ onBack, lang }) => {
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#e74c3c' }}>
-              {queueStats.red}
+              {queueStats.esi1}
             </div>
             <div style={{ color: '#e74c3c', marginTop: '5px', fontWeight: '600' }}>
               🚨 {t.emergency}
             </div>
           </div>
-          
+
           <div style={{
             background: '#fef9e7',
             padding: '20px',
@@ -257,13 +258,27 @@ const QueueDisplay = ({ onBack, lang }) => {
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#f39c12' }}>
-              {queueStats.yellow}
+              {queueStats.esi2}
             </div>
             <div style={{ color: '#f39c12', marginTop: '5px', fontWeight: '600' }}>
               ⚠️ {t.urgent}
             </div>
           </div>
-          
+
+          <div style={{
+            background: '#fff3cd',
+            padding: '20px',
+            borderRadius: '15px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#f1c40f' }}>
+              {queueStats.esi3}
+            </div>
+            <div style={{ color: '#f1c40f', marginTop: '5px', fontWeight: '600' }}>
+              ⚡ Semi-Urgent
+            </div>
+          </div>
+
           <div style={{
             background: '#eef',
             padding: '20px',
@@ -271,13 +286,13 @@ const QueueDisplay = ({ onBack, lang }) => {
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#27ae60' }}>
-              {queueStats.green}
+              {queueStats.esi4_5}
             </div>
             <div style={{ color: '#27ae60', marginTop: '5px', fontWeight: '600' }}>
               ✅ {t.routine}
             </div>
           </div>
-          
+
           <div style={{
             background: '#f0f0f0',
             padding: '20px',
@@ -303,7 +318,7 @@ const QueueDisplay = ({ onBack, lang }) => {
         boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
       }}>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-          {['ALL', 'RED', 'YELLOW', 'GREEN'].map(priority => (
+          {priorityLevels.map(priority => (
             <button
               key={priority}
               onClick={() => setSelectedPriority(priority)}
@@ -322,8 +337,9 @@ const QueueDisplay = ({ onBack, lang }) => {
               }}
             >
               {priority === 'ALL' ? t.all : 
-               priority === 'RED' ? `🚨 ${t.emergency}` :
-               priority === 'YELLOW' ? `⚠️ ${t.urgent}` :
+               priority === 'ESI-1' ? `🚨 ${t.emergency}` :
+               priority === 'ESI-2' ? `⚠️ ${t.urgent}` :
+               priority === 'ESI-3' ? `⚡ Semi-Urgent` :
                `✅ ${t.routine}`}
             </button>
           ))}
@@ -344,7 +360,7 @@ const QueueDisplay = ({ onBack, lang }) => {
             color: '#7f8c8d'
           }}>
             <div style={{ fontSize: '60px', marginBottom: '20px' }}>🏥</div>
-            <h3>No patients in queue</h3>
+            <h3>{t.title} Empty</h3>
             <p>Patients will appear here after triage assessment</p>
           </div>
         ) : (
@@ -366,7 +382,7 @@ const QueueDisplay = ({ onBack, lang }) => {
               <div>{t.waitTime}</div>
               <div>{t.symptoms}</div>
             </div>
-            
+
             {/* Patient Rows */}
             {filteredQueue.map((patient, index) => (
               <div
@@ -393,7 +409,7 @@ const QueueDisplay = ({ onBack, lang }) => {
                     ID: {patient.triageId}
                   </div>
                 </div>
-                
+
                 {/* Priority */}
                 <div>
                   <span style={{
@@ -410,7 +426,7 @@ const QueueDisplay = ({ onBack, lang }) => {
                     #{patient.queuePosition}
                   </div>
                 </div>
-                
+
                 {/* Risk Score */}
                 <div>
                   <div style={{
@@ -424,17 +440,17 @@ const QueueDisplay = ({ onBack, lang }) => {
                     /100
                   </div>
                 </div>
-                
+
                 {/* Wait Time */}
                 <div>
                   <div style={{ fontWeight: '600', color: '#2c3e50' }}>
-                    {getWaitTime(patient.timestamp)}
+                    {getWaitTime(patient.assessmentTimestamp || patient.timestamp)}
                   </div>
                   <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
                     {patient.estimatedWaitTime}
                   </div>
                 </div>
-                
+
                 {/* Symptoms */}
                 <div>
                   <div style={{ fontSize: '14px', color: '#2c3e50' }}>

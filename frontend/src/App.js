@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
+import TriageResult from './components/TriageResult';
+import QueueDisplay from './components/QueueDisplay';
+import { classifyPatient, addToQueue, logoutASHA } from './utils/aiTriageAlgorithm'; // Updated import
+import SymptomInput from './components/SymptomInput';
+import { SYMPTOMS_DATABASE } from './data/symptomsDatabase';
 
-// Language Data
+// Language Data - COMPLETE TRANSLATION
 const languages = {
   en: {
     appName: 'Sehat Saathi',
@@ -37,7 +42,25 @@ const languages = {
     medicineTracker: 'Medicine Tracker',
     trackerSubtitle: 'Track prescriptions',
     healthReports: 'Health Reports',
-    reportsSubtitle: 'Generate reports'
+    reportsSubtitle: 'Generate reports',
+    queueManagement: 'Queue Management',
+    // Health Checkup Form
+    patientInformation: 'Patient Information',
+    patientName: 'Patient Name',
+    age: 'Age',
+    selectGender: 'Select Gender',
+    male: 'Male',
+    female: 'Female',
+    nextSymptoms: 'Next: Select Symptoms',
+    selectSymptoms: 'Select Symptoms',
+    previous: 'Previous',
+    nextVitals: 'Next: Record Vitals',
+    recordVitals: 'Record Vitals',
+    temperature: 'Temperature (°F)',
+    bloodPressure: 'Blood Pressure (120/80)',
+    heartRate: 'Heart Rate',
+    oxygenSaturation: 'Oxygen Saturation (%)',
+    completeCheckup: 'Complete Checkup'
   },
   hi: {
     appName: 'सेहत साथी',
@@ -74,7 +97,25 @@ const languages = {
     medicineTracker: 'दवा ट्रैकर',
     trackerSubtitle: 'नुस्खे ट्रैक करें',
     healthReports: 'स्वास्थ्य रिपोर्ट',
-    reportsSubtitle: 'रिपोर्ट जनरेट करें'
+    reportsSubtitle: 'रिपोर्ट जनरेट करें',
+    queueManagement: 'कतार प्रबंधन',
+    // Health Checkup Form
+    patientInformation: 'रोगी की जानकारी',
+    patientName: 'रोगी का नाम',
+    age: 'उम्र',
+    selectGender: 'लिंग चुनें',
+    male: 'पुरुष',
+    female: 'महिला',
+    nextSymptoms: 'अगला: लक्षण चुनें',
+    selectSymptoms: 'लक्षण चुनें',
+    previous: 'पिछला',
+    nextVitals: 'अगला: जीवन संकेत दर्ज करें',
+    recordVitals: 'जीवन संकेत दर्ज करें',
+    temperature: 'तापमान (°F)',
+    bloodPressure: 'रक्तचाप (120/80)',
+    heartRate: 'हृदय गति',
+    oxygenSaturation: 'ऑक्सीजन संतृप्ति (%)',
+    completeCheckup: 'जांच पूरी करें'
   },
   pa: {
     appName: 'ਸੇਹਤ ਸਾਥੀ',
@@ -111,43 +152,64 @@ const languages = {
     medicineTracker: 'ਦਵਾਈ ਟ੍ਰੈਕਰ',
     trackerSubtitle: 'ਨੁਸਖੇ ਟ੍ਰੈਕ ਕਰੋ',
     healthReports: 'ਸਿਹਤ ਰਿਪੋਰਟਾਂ',
-    reportsSubtitle: 'ਰਿਪੋਰਟਾਂ ਤਿਆਰ ਕਰੋ'
+    reportsSubtitle: 'ਰਿਪੋਰਟਾਂ ਤਿਆਰ ਕਰੋ',
+    queueManagement: 'ਕਤਾਰ ਪ੍ਰਬੰਧਨ',
+    // Health Checkup Form - PUNJABI TRANSLATIONS
+    patientInformation: 'ਮਰੀਜ਼ ਦੀ ਜਾਣਕਾਰੀ',
+    patientName: 'ਮਰੀਜ਼ ਦਾ ਨਾਮ',
+    age: 'ਉਮਰ',
+    selectGender: 'ਲਿੰਗ ਚੁਣੋ',
+    male: 'ਪੁਰਸ਼',
+    female: 'ਔਰਤ',
+    nextSymptoms: 'ਅਗਲਾ: ਲੱਛਣ ਚੁਣੋ',
+    selectSymptoms: 'ਲੱਛਣ ਚੁਣੋ',
+    previous: 'ਪਿਛਲਾ',
+    nextVitals: 'ਅਗਲਾ: ਵਾਇਟਲ ਰਿਕਾਰਡ ਕਰੋ',
+    recordVitals: 'ਵਾਇਟਲ ਰਿਕਾਰਡ ਕਰੋ',
+    temperature: 'ਤਾਪਮਾਨ (°F)',
+    bloodPressure: 'ਬਲੱਡ ਪ੍ਰੈਸ਼ਰ (120/80)',
+    heartRate: 'ਦਿਲ ਦੀ ਗਤੀ',
+    oxygenSaturation: 'ਆਕਸੀਜਨ ਸੰਤ੃ਪਤੀ (%)',
+    completeCheckup: 'ਜਾਂਚ ਮੁਕੰਮਲ ਕਰੋ'
   }
 };
 
 // Back Button Component
-const BackButton = ({ onBack }) => (
-  <button
-    onClick={onBack}
-    style={{
-      position: 'absolute',
-      top: '30px',
-      left: '30px',
-      background: 'rgba(255,255,255,0.2)',
-      color: 'white',
-      border: '2px solid rgba(255,255,255,0.3)',
-      borderRadius: '50px',
-      padding: '12px 20px',
-      cursor: 'pointer',
-      fontSize: '16px',
-      fontWeight: '600',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      transition: 'all 0.3s ease'
-    }}
-    onMouseOver={(e) => {
-      e.target.style.background = 'rgba(255,255,255,0.3)';
-      e.target.style.transform = 'translateX(-5px)';
-    }}
-    onMouseOut={(e) => {
-      e.target.style.background = 'rgba(255,255,255,0.2)';
-      e.target.style.transform = 'translateX(0px)';
-    }}
-  >
-    ← Back
-  </button>
-);
+const BackButton = ({ onBack, lang }) => {
+  const t = languages[lang] || languages.en;
+  return (
+    <button
+      onClick={onBack}
+      style={{
+        position: 'absolute',
+        top: '30px',
+        left: '30px',
+        background: 'rgba(255,255,255,0.2)',
+        color: 'white',
+        border: '2px solid rgba(255,255,255,0.3)',
+        borderRadius: '50px',
+        padding: '12px 20px',
+        cursor: 'pointer',
+        fontSize: '16px',
+        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        transition: 'all 0.3s ease'
+      }}
+      onMouseOver={(e) => {
+        e.target.style.background = 'rgba(255,255,255,0.3)';
+        e.target.style.transform = 'translateX(-5px)';
+      }}
+      onMouseOut={(e) => {
+        e.target.style.background = 'rgba(255,255,255,0.2)';
+        e.target.style.transform = 'translateX(0px)';
+      }}
+    >
+      ← {t.back}
+    </button>
+  );
+};
 
 // Language Screen Component
 const LanguageScreen = ({ onSelectLanguage }) => (
@@ -220,7 +282,7 @@ const RoleScreen = ({ onSelectRole, onBack, lang }) => {
       fontFamily: 'Arial, sans-serif',
       position: 'relative'
     }}>
-      <BackButton onBack={onBack} />
+      <BackButton onBack={onBack} lang={lang} />
       
       <div style={{ textAlign: 'center', padding: '40px 0' }}>
         <h1 style={{ color: 'white', fontSize: '36px', fontWeight: '700', margin: '0 0 15px 0' }}>
@@ -279,10 +341,41 @@ const RoleScreen = ({ onSelectRole, onBack, lang }) => {
   );
 };
 
-// ASHA Login Screen
+// ASHA Login Screen - Updated with Real Authentication
 const ASHALogin = ({ onLogin, onBack, lang }) => {
   const [credentials, setCredentials] = useState({ ashaId: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
   const t = languages[lang] || languages.en;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const { authenticateASHA } = await import('./data/authorizedASHA');
+      const result = authenticateASHA(credentials.ashaId, credentials.password);
+      
+      if (result.success) {
+        onLogin(result.user);
+      } else {
+        setError(result.message);
+        const attempts = localStorage.getItem('loginAttempts') || 0;
+        const newAttempts = parseInt(attempts) + 1;
+        localStorage.setItem('loginAttempts', newAttempts.toString());
+        
+        if (newAttempts >= 3) {
+          setError('Too many failed attempts. Please contact your supervisor at: +91-9876543200');
+        }
+      }
+    } catch (err) {
+      setError('System error. Please try again.');
+    }
+    
+    setLoading(false);
+  };
 
   return (
     <div style={{
@@ -295,7 +388,7 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
       padding: '20px',
       position: 'relative'
     }}>
-      <BackButton onBack={onBack} />
+      <BackButton onBack={onBack} lang={lang} />
       
       <div style={{
         background: 'white',
@@ -307,32 +400,44 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 style={{ color: '#2c3e50', fontSize: '32px', fontWeight: '700', margin: '0 0 10px 0' }}>
-            👩‍⚕️ {t.ashaLogin}
+            🔐 {t.ashaLogin}
           </h2>
-          <p style={{ color: '#7f8c8d', fontSize: '16px', margin: 0 }}>
+          <p style={{ color: '#7f8c8d', fontSize: '16px', margin: '0 0 10px 0' }}>
             {t.communityHealth}
+          </p>
+          <p style={{ color: '#e74c3c', fontSize: '14px', margin: 0 }}>
+            ⚠️ Official ASHA Workers Only
           </p>
         </div>
 
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          if (credentials.ashaId && credentials.password) {
-            onLogin({ name: `ASHA ${credentials.ashaId}`, role: 'asha' });
-          }
-        }}>
+        {error && (
+          <div style={{
+            background: '#fee',
+            color: '#e74c3c',
+            padding: '15px',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            border: '1px solid #fcc',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '25px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#2c3e50', fontWeight: '600' }}>
-              {t.ashaId}
+              {t.ashaId} *
             </label>
             <input
               type="text"
-              placeholder={t.enterAshaId}
+              placeholder="PB001, PB002, DEMO01..."
               value={credentials.ashaId}
-              onChange={(e) => setCredentials({ ...credentials, ashaId: e.target.value })}
+              onChange={(e) => setCredentials({ ...credentials, ashaId: e.target.value.toUpperCase() })}
               style={{
                 width: '100%',
                 padding: '15px',
-                border: '2px solid #ecf0f1',
+                border: error ? '2px solid #e74c3c' : '2px solid #ecf0f1',
                 borderRadius: '12px',
                 fontSize: '16px',
                 boxSizing: 'border-box',
@@ -344,7 +449,7 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
 
           <div style={{ marginBottom: '30px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#2c3e50', fontWeight: '600' }}>
-              {t.password}
+              {t.password} *
             </label>
             <input
               type="password"
@@ -354,7 +459,7 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
               style={{
                 width: '100%',
                 padding: '15px',
-                border: '2px solid #ecf0f1',
+                border: error ? '2px solid #e74c3c' : '2px solid #ecf0f1',
                 borderRadius: '12px',
                 fontSize: '16px',
                 boxSizing: 'border-box',
@@ -366,55 +471,101 @@ const ASHALogin = ({ onLogin, onBack, lang }) => {
 
           <button
             type="submit"
+            disabled={loading}
             style={{
               width: '100%',
               padding: '18px',
-              background: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+              background: loading ? '#95a5a6' : 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '12px',
               fontSize: '18px',
               fontWeight: '700',
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'transform 0.2s ease'
             }}
-            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.target.style.transform = 'translateY(0px)'}
+            onMouseOver={(e) => !loading && (e.target.style.transform = 'translateY(-2px)')}
+            onMouseOut={(e) => !loading && (e.target.style.transform = 'translateY(0px)')}
           >
-            {t.loginButton}
+            {loading ? '🔄 Verifying...' : `🔐 ${t.loginButton}`}
           </button>
         </form>
+
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#3498db',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            Need Help? View Demo Credentials
+          </button>
+        </div>
+
+        {showHelp && (
+          <div style={{
+            marginTop: '20px',
+            padding: '15px',
+            background: '#f8f9fa',
+            borderRadius: '10px',
+            fontSize: '14px'
+          }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>Demo Credentials:</h4>
+            <div style={{ fontFamily: 'monospace' }}>
+              <strong>ID:</strong> DEMO01 <strong>Pass:</strong> demo123<br/>
+              <strong>ID:</strong> TEST01 <strong>Pass:</strong> test123<br/>
+              <strong>ID:</strong> PB001 <strong>Pass:</strong> Amritsar@2024
+            </div>
+            <p style={{ margin: '10px 0 0 0', color: '#7f8c8d' }}>
+              For official access, contact your supervisor.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Health Checkup Screen
-const HealthCheckup = ({ onBack, onSubmit }) => {
+// Enhanced Health Checkup Screen with Professional Symptom Input
+const HealthCheckup = ({ onBack, onSubmit, lang }) => {
   const [step, setStep] = useState(1);
   const [patientInfo, setPatientInfo] = useState({
     name: '',
     age: '',
     gender: ''
   });
-  const [symptoms, setSymptoms] = useState([]);
+  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [vitals, setVitals] = useState({
     temperature: '',
     bloodPressure: '',
-    heartRate: ''
+    heartRate: '',
+    oxygenSaturation: ''
   });
 
-  const symptomsList = [
-    'बुखार / Fever',
-    'खांसी / Cough', 
-    'सांस लेने में कठिनाई / Breathing Problem',
-    'छाती में दर्द / Chest Pain',
-    'सिरदर्द / Headache',
-    'जी मिचलाना / Nausea'
-  ];
+  const t = languages[lang] || languages.en;
+
+  // Handle symptom selection
+  const handleSymptomSelect = (symptom) => {
+    setSelectedSymptoms(prev => {
+      if (prev.includes(symptom)) {
+        return prev.filter(s => s !== symptom);
+      } else {
+        return [...prev, symptom];
+      }
+    });
+  };
 
   const handleSubmit = () => {
-    onSubmit({ patient: patientInfo, symptoms, vitals });
+    const checkupData = {
+      patient: patientInfo,
+      symptoms: selectedSymptoms,
+      vitals: vitals
+    };
+    onSubmit(checkupData);
   };
 
   return (
@@ -435,10 +586,11 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
         borderRadius: '25px',
         cursor: 'pointer'
       }}>
-        ← Back
+        ← {t.back}
       </button>
 
-      <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '60px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '60px' }}>
+        {/* Step 1: Patient Information */}
         {step === 1 && (
           <div style={{
             background: 'white',
@@ -446,11 +598,13 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
             borderRadius: '20px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
           }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>👤 Patient Information</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#0056b3', fontSize: '28px' }}>
+              👤 {t.patientInformation}
+            </h2>
             
             <input
               type="text"
-              placeholder="Patient Name / मरीज का नाम"
+              placeholder={t.patientName}
               value={patientInfo.name}
               onChange={(e) => setPatientInfo({...patientInfo, name: e.target.value})}
               style={{
@@ -466,7 +620,7 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
 
             <input
               type="number"
-              placeholder="Age / उम्र"
+              placeholder={t.age}
               value={patientInfo.age}
               onChange={(e) => setPatientInfo({...patientInfo, age: e.target.value})}
               style={{
@@ -493,63 +647,53 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
                 boxSizing: 'border-box'
               }}
             >
-              <option value="">Select Gender / लिंग चुनें</option>
-              <option value="male">Male / पुरुष</option>
-              <option value="female">Female / महिला</option>
+              <option value="">{t.selectGender}</option>
+              <option value="male">{t.male}</option>
+              <option value="female">{t.female}</option>
             </select>
 
-            <button onClick={() => setStep(2)} style={{
-              width: '100%',
-              padding: '15px',
-              background: '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '18px',
-              cursor: 'pointer'
-            }}>
-              Next: Select Symptoms →
+            <button 
+              onClick={() => setStep(2)} 
+              disabled={!patientInfo.name || !patientInfo.age || !patientInfo.gender}
+              style={{
+                width: '100%',
+                padding: '15px',
+                background: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '18px',
+                cursor: 'pointer',
+                opacity: (!patientInfo.name || !patientInfo.age || !patientInfo.gender) ? 0.5 : 1
+              }}
+            >
+              {t.nextSymptoms} →
             </button>
           </div>
         )}
 
+        {/* Step 2: Professional Symptom Selection */}
         {step === 2 && (
           <div style={{
             background: 'white',
-            padding: '40px',
             borderRadius: '20px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
           }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>🩺 Select Symptoms</h2>
-            
-            <div style={{ marginBottom: '30px' }}>
-              {symptomsList.map((symptom, index) => (
-                <label key={index} style={{
-                  display: 'block',
-                  padding: '15px',
-                  marginBottom: '10px',
-                  border: '2px solid #ecf0f1',
-                  borderRadius: '10px',
-                  cursor: 'pointer'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={symptoms.includes(symptom)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSymptoms([...symptoms, symptom]);
-                      } else {
-                        setSymptoms(symptoms.filter(s => s !== symptom));
-                      }
-                    }}
-                    style={{ marginRight: '10px' }}
-                  />
-                  {symptom}
-                </label>
-              ))}
+            <div style={{ padding: '30px 40px 20px', borderBottom: '2px solid #f8f9fa' }}>
+              <h2 style={{ textAlign: 'center', margin: '0', color: '#0056b3', fontSize: '28px' }}>
+                🩺 {t.selectSymptoms}
+              </h2>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Professional Symptom Input Component */}
+            <SymptomInput 
+              onSymptomSelect={handleSymptomSelect}
+              selectedSymptoms={selectedSymptoms}
+              lang={lang}
+            />
+
+            <div style={{ padding: '20px 40px 40px', display: 'flex', gap: '15px' }}>
               <button onClick={() => setStep(1)} style={{
                 flex: 1,
                 padding: '15px',
@@ -557,25 +701,32 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
                 color: 'white',
                 border: 'none',
                 borderRadius: '10px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '16px'
               }}>
-                ← Previous
+                ← {t.previous}
               </button>
-              <button onClick={() => setStep(3)} style={{
-                flex: 2,
-                padding: '15px',
-                background: '#3498db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                cursor: 'pointer'
-              }}>
-                Next: Record Vitals →
+              <button 
+                onClick={() => setStep(3)} 
+                disabled={selectedSymptoms.length === 0}
+                style={{
+                  flex: 2,
+                  padding: '15px',
+                  background: selectedSymptoms.length === 0 ? '#bdc3c7' : '#3498db',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: selectedSymptoms.length === 0 ? 'not-allowed' : 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                {t.nextVitals} →
               </button>
             </div>
           </div>
         )}
 
+        {/* Step 3: Vital Signs */}
         {step === 3 && (
           <div style={{
             background: 'white',
@@ -583,57 +734,76 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
             borderRadius: '20px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
           }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>📊 Record Vitals</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#0056b3', fontSize: '28px' }}>
+              📊 {t.recordVitals}
+            </h2>
             
-            <input
-              type="number"
-              placeholder="Temperature (°F) / तापमान"
-              value={vitals.temperature}
-              onChange={(e) => setVitals({...vitals, temperature: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '15px',
-                marginBottom: '15px',
-                border: '2px solid #ecf0f1',
-                borderRadius: '10px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
-            />
+            <div style={{ display: 'grid', gap: '15px', marginBottom: '25px' }}>
+              <input
+                type="number"
+                step="0.1"
+                placeholder={t.temperature}
+                value={vitals.temperature}
+                onChange={(e) => setVitals({...vitals, temperature: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  border: '2px solid #ecf0f1',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
 
-            <input
-              type="text"
-              placeholder="Blood Pressure / रक्तचाप (120/80)"
-              value={vitals.bloodPressure}
-              onChange={(e) => setVitals({...vitals, bloodPressure: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '15px',
-                marginBottom: '15px',
-                border: '2px solid #ecf0f1',
-                borderRadius: '10px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
-            />
+              <input
+                type="text"
+                placeholder={t.bloodPressure}
+                value={vitals.bloodPressure}
+                onChange={(e) => setVitals({...vitals, bloodPressure: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  border: '2px solid #ecf0f1',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
 
-            <input
-              type="number"
-              placeholder="Heart Rate / हृदय गति"
-              value={vitals.heartRate}
-              onChange={(e) => setVitals({...vitals, heartRate: e.target.value})}
-              style={{
-                width: '100%',
-                padding: '15px',
-                marginBottom: '25px',
-                border: '2px solid #ecf0f1',
-                borderRadius: '10px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
-            />
+              <input
+                type="number"
+                placeholder={t.heartRate}
+                value={vitals.heartRate}
+                onChange={(e) => setVitals({...vitals, heartRate: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  border: '2px solid #ecf0f1',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                placeholder={t.oxygenSaturation}
+                value={vitals.oxygenSaturation}
+                onChange={(e) => setVitals({...vitals, oxygenSaturation: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  border: '2px solid #ecf0f1',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={() => setStep(2)} style={{
                 flex: 1,
                 padding: '15px',
@@ -641,9 +811,10 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
                 color: 'white',
                 border: 'none',
                 borderRadius: '10px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '16px'
               }}>
-                ← Previous
+                ← {t.previous}
               </button>
               <button onClick={handleSubmit} style={{
                 flex: 2,
@@ -656,7 +827,7 @@ const HealthCheckup = ({ onBack, onSubmit }) => {
                 fontWeight: '600',
                 cursor: 'pointer'
               }}>
-                Complete Checkup ✓
+                {t.completeCheckup} ✓
               </button>
             </div>
           </div>
@@ -721,10 +892,10 @@ const ASHADashboard = ({ user, onLogout, lang, setCurrentScreen }) => {
         {[
           { icon: '👤', title: t.patientReg, subtitle: t.regSubtitle, onClick: () => alert(`${t.patientReg} - Coming Soon!`) },
           { icon: '🩺', title: t.healthCheckup, subtitle: t.checkupSubtitle, onClick: () => setCurrentScreen('healthCheckup') },
+          { icon: '📊', title: t.queueManagement, subtitle: 'View patient queue', onClick: () => setCurrentScreen('queue') },
           { icon: '📋', title: t.patientRecords, subtitle: t.recordsSubtitle, onClick: () => alert(`${t.patientRecords} - Coming Soon!`) },
           { icon: '🏥', title: t.doctorConnect, subtitle: t.connectSubtitle, onClick: () => alert(`${t.doctorConnect} - Coming Soon!`) },
-          { icon: '💊', title: t.medicineTracker, subtitle: t.trackerSubtitle, onClick: () => alert(`${t.medicineTracker} - Coming Soon!`) },
-          { icon: '📊', title: t.healthReports, subtitle: t.reportsSubtitle, onClick: () => alert(`${t.healthReports} - Coming Soon!`) }
+          { icon: '💊', title: t.medicineTracker, subtitle: t.trackerSubtitle, onClick: () => alert(`${t.medicineTracker} - Coming Soon!`) }
         ].map((card, index) => (
           <div
             key={index}
@@ -798,17 +969,44 @@ function App() {
     />;
   }
 
-  // Health Checkup Screen
+  // Health Checkup Screen with Professional Symptom Input
   if (currentScreen === 'healthCheckup') {
     return (
       <HealthCheckup 
         onBack={() => setCurrentScreen('dashboard')}
         onSubmit={(data) => {
-          console.log('Health Checkup Data:', data);
-          setPatientData(data);
-          alert('Health checkup completed successfully!');
+          console.log('Checkup data:', data); // Debug log
+          const triageResult = classifyPatient(data);
+          console.log('Triage result:', triageResult); // Debug log
+          setPatientData(triageResult);
+          setCurrentScreen('triageResult');
+        }}
+        lang={language}
+      />
+    );
+  }
+
+  // Triage Result Screen
+  if (currentScreen === 'triageResult') {
+    return (
+      <TriageResult 
+        triageData={patientData}
+        onBack={() => setCurrentScreen('dashboard')}
+        onAddToQueue={(data) => {
+          addToQueue(data);
           setCurrentScreen('dashboard');
         }}
+        lang={language}
+      />
+    );
+  }
+
+  // Queue Display Screen
+  if (currentScreen === 'queue') {
+    return (
+      <QueueDisplay 
+        onBack={() => setCurrentScreen('dashboard')}
+        lang={language}
       />
     );
   }
